@@ -3,6 +3,7 @@ using System.Text;
 using API.Data;
 using API.DTOs;
 using API.Entities;
+using API.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,14 +12,16 @@ namespace API.Controllers;
 public class AccountController : BaseApiController
 {
     private readonly DataContext _context;
+    private readonly ITokenService _tokenService;
 
-    public AccountController(DataContext context)
+    public AccountController(DataContext context, ITokenService tokenService)
     {
         _context = context;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")] // api/account/register
-    public async Task<ActionResult<AppUser>> Register(RegisterDto request)
+    public async Task<ActionResult<UserDto>> Register(RegisterDto request)
     {
         if (await UserExists(request.Username))
             return BadRequest("Incorrect username");
@@ -36,11 +39,15 @@ public class AccountController : BaseApiController
 
         await _context.SaveChangesAsync();
 
-        return user;
+        return new UserDto()
+        {
+            Username = user.UserName,
+            Token = _tokenService.CreateToken(user)
+        };
     }
     
     [HttpPost("login")] // api/account/login
-    public async Task<ActionResult<AppUser>> Login(LoginDto request)
+    public async Task<ActionResult<UserDto>> Login(LoginDto request)
     {
         var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == request.Username);
 
@@ -56,7 +63,11 @@ public class AccountController : BaseApiController
                 return Unauthorized("Incorrect password");
         }
 
-        return user;
+        return new UserDto()
+        {
+            Username = user.UserName,
+            Token = _tokenService.CreateToken(user)
+        };
     }
 
     private async Task<Boolean> UserExists(string username)
