@@ -15,7 +15,7 @@ const routes: Routes = [
   {
     path: '',
     runGuardsAndResolvers: 'always',
-
+    canActivate: [authGuard],
     children: [
       {
         path: 'members',
@@ -35,7 +35,6 @@ const routes: Routes = [
       },
     ],
   },
-
   {
     path: '**',
     component: HomeComponent,
