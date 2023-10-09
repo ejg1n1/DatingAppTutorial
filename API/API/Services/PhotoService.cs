@@ -28,12 +28,18 @@ public class PhotoService : IPhotoService
                 File = new FileDescription(file.FileName, stream),
                 Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face"),
                 Folder = "da-net6"
-            }; 
+            };
+
+            uploadResult = await _cloudinary.UploadAsync(uploadParams);
         }
+
+        return uploadResult;
     }
 
-    public Task<DeletionResult> DeletePhotoAsync(string publicId)
+    public async Task<DeletionResult> DeletePhotoAsync(string publicId)
     {
-        throw new NotImplementedException();
+        var deleteParams = new DeletionParams(publicId);
+
+        return await _cloudinary.DestroyAsync(deleteParams);
     }
 }
